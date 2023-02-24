@@ -57,7 +57,7 @@ async def qrcreate(ctx):
         'message':'generic message',
         'compress':False,
         'branding':False,
-        'size':400
+        'size':200
 }
     print(params)
     response = requests.get(url = url, params = params, stream=True)

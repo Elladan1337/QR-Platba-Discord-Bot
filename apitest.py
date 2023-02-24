@@ -17,7 +17,7 @@ params = {
 	'branding':False,
 	'size':400
 }
-
+print(params)
 response = requests.get(url = url, params = params, stream=True)
 print(response.status_code)
 if response.status_code == 200:

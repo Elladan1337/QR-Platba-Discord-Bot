@@ -12,7 +12,7 @@ params = {
 	'ss':'',
 	'identifier':'',
 	'date':'2023-01-01',
-	'message':'ahoj',
+	'message':'pozdravy od Jáchyma',
 	'compress':False,
 	'branding':False,
 	'size':400

@@ -21,17 +21,29 @@ async def on_ready():
 
 @client.command()
 async def qrcreate(ctx):
-    messages = [message async for message in ctx.channel.history(limit=10)]# gets the last 10 messages in the channel
-    bank_pattern = re.compile(r'\b\d{2,6}-?\d{2,10}\/\d{4}\b', re.IGNORECASE) # example regex pattern
+    #messages = [message async for message in ctx.channel.history(limit=10)]# gets the last 10 messages in the channel
+    messages = []
+    async for message in ctx.channel.history(limit=10):
+        if message.author != client.user:
+            messages.append(message)
+    bank_pattern = re.compile(r'((?<=\D)|(?<=\b))\d{2,6}-?\d{2,10}\/\d{4}((?=\D)|(?=\b))', re.IGNORECASE) # example regex pattern
+    crown_pattern = re.compile(r'\d+(?=\skč)|(?<=czk\s)\d+', re.IGNORECASE)
     bank_account = ''
     for msg in messages:
         if re.search(bank_pattern, msg.content):
             bank_account = re.search(bank_pattern, msg.content).group()
+            if re.search(crown_pattern, msg.content):
+                money = int(re.search(crown_pattern, msg.content).group())
+            else:
+                money = 0
             break
     if len(bank_account) > 0:
-        answer = 'QR code created with the following account number:\n' + bank_account
+        answer = 'QR code created with the following account number:\n' + bank_account + ' Amount: ' + str(money) + ' Kč.' 
     else:
-        answer = 'No matches found.'
+        await ctx.send('No matches found.')
+        return()
+
+    print(messages)
 
     if re.search(r'\d{2,6}-', bank_account):
         prefix = re.search(r'\d{2,6}(?=-)', bank_account).group()
@@ -47,7 +59,7 @@ async def qrcreate(ctx):
         'accountPrefix': prefix,
         'accountNumber': number,
         'bankCode': bank,
-        'amount': 0,
+        'amount': money,
         'currency':'CZK',
         'vs':'',
         'ks':'',
@@ -65,9 +77,11 @@ async def qrcreate(ctx):
     if response.status_code == 200:
         with open('img.png', 'wb') as out_file:
             out_file.write(response.content)
-    print(response.raw)
-    await ctx.send(answer)
-    await ctx.send(file = discord.File(fp = open('img.png', 'rb')))
+        await ctx.send(answer)
+        await ctx.send(file = discord.File(fp = open('img.png', 'rb')))
+    else:
+        await ctx.send("Invalid bank account number detected. Mission aborted.")
+    
 client.run(TOKEN)
 
 

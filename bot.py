@@ -20,25 +20,36 @@ async def on_ready():
     print(f'{client.user} has connected to Discord!')
 
 @client.command()
-async def qrcreate(ctx):
+async def qrcreate(ctx, money = "0.00"):
     #messages = [message async for message in ctx.channel.history(limit=10)]# gets the last 10 messages in the channel
     messages = []
+    try:
+        money = float(money)
+    except ValueError:
+        money = float(0)
+    
+    if money < 0 or money > 1000000:
+        money = float(0)
+    else: 
+        money = round(float(money), 2)
+
     async for message in ctx.channel.history(limit=10):
         if message.author != client.user:
             messages.append(message)
+    
     bank_pattern = re.compile(r'((?<=\D)|(?<=\b))\d{2,6}-?\d{2,10}\/\d{4}((?=\D)|(?=\b))', re.IGNORECASE) # example regex pattern
-    crown_pattern = re.compile(r'\d+(?=\skč)|(?<=czk\s)\d+', re.IGNORECASE)
+    #crown_pattern = re.compile(r'\d+(?=\skč)|(?<=czk\s)\d+', re.IGNORECASE)
     bank_account = ''
     for msg in messages:
         if re.search(bank_pattern, msg.content):
             bank_account = re.search(bank_pattern, msg.content).group()
-            if re.search(crown_pattern, msg.content):
-                money = int(re.search(crown_pattern, msg.content).group())
-            else:
-                money = 0
+            #if re.search(crown_pattern, msg.content):
+                #money = int(re.search(crown_pattern, msg.content).group())
+            #else:
+                #money = 0
             break
     if len(bank_account) > 0:
-        answer = 'QR code created with the following account number:\n' + bank_account + ' Amount: ' + str(money) + ' Kč.' 
+        answer = 'QR code created with the following account number: ' + bank_account + '\nAmount: ' + str(money) + ' Kč.' 
     else:
         await ctx.send('No matches found.')
         return()
